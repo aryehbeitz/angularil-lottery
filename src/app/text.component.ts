@@ -1,4 +1,4 @@
-import {Component} from '@angular/core';
+import {Component, Input} from '@angular/core';
 import {DataService} from './data.service';
 
 @Component({
@@ -19,12 +19,16 @@ import {DataService} from './data.service';
 })
 export class TextComponent {
 
+  @Input() maxIterations: number;
+  @Input() speed: number;
+
   public name: string;
 
   private running: boolean;
   private selected: string;
   private covered: string | any | void;
   private timer: any;
+  private currentIteration: any;
   private names: string[];
 
   constructor(dataService: DataService) {
@@ -33,20 +37,23 @@ export class TextComponent {
   }
 
   public init() {
-    this.running  = false;
-    this.selected = this.names[Math.random() * this.names.length | 0].toUpperCase();
-    this.covered  = this.selected.replace(/[^\s]/g, '_');
-    this.name     = this.covered;
+    this.currentIteration = 0;
+    this.running          = false;
+    this.selected         = this.names[Math.random() * this.names.length | 0].toUpperCase();
+    this.covered          = this.selected.replace(/[^\s]/g, '_');
+    this.name             = this.covered;
   }
 
-  start() {
+  public start() {
     this.running = true;
-    this.timer   = setInterval(this.decode.bind(this), 50);
+    this.timer   = setInterval(this.decode.bind(this), this.speed);
   }
 
-  decode() {
-    const newText = this.covered.split('').map(this.changeLetter().bind(this)).join('');
-    if (newText === this.covered) {
+  private decode() {
+    let newText = this.covered.split('').map(this.changeLetter().bind(this)).join('');
+    newText     =  this.currentIteration++ >= this.maxIterations ? this.selected : newText;
+
+    if (newText === this.selected) {
       this.name = newText;
       clearTimeout(this.timer);
       this.running = false;
@@ -56,7 +63,7 @@ export class TextComponent {
     this.name    = newText;
   }
 
-  changeLetter() {
+  private changeLetter() {
     const replacements    = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXTZabcdefghiklmnopqrstuvwxyz%!@&*#_ אבגדהוזחטיכךלמםנןסעפףצץקרשת';
     const replacementsLen = replacements.length;
     return function (letter, index) {
